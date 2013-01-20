@@ -2,7 +2,7 @@
 
 // pipe() fills in an array of two file descriptors.  Whats written to the write-side
 // (file descriptor 1) appears on the the read-side (file descriptor 0). 
-enum { kReadSide, kWriteSide };  // The two side to every pipe()
+enum { kReadSide, kWriteSide };  // The two sides to every pipe()
 
 @interface XXFdHijacker () {
     int _pipe[2];   // populated by pipe()
@@ -38,19 +38,19 @@ enum { kReadSide, kWriteSide };  // The two side to every pipe()
     // Unix API is of the "return bad value, set errno" flavor.
     int result;
 
-    // Make the pipe.  Anchor one end of the pipe where the original fd is.
-    // The other end will go to a runloop source so we can find bytes written to it.
-    result = pipe (_pipe);
-    if (result == -1) {
-        assert (!"could not make a pipe for standard out");
-        return;
-    }
-
     // Make a copy of the file descriptor.  The dup2 will close it, but we want it
     // to stick around for restoration and replication.
     self.oldFileDescriptor = dup (self.fileDescriptor);
     if (self.oldFileDescriptor == -1) {
         assert (!"could not dup our fd");
+        return;
+    }
+
+    // Make the pipe.  Anchor one end of the pipe where the original fd is.
+    // The other end will go to a runloop source so we can find bytes written to it.
+    result = pipe (_pipe);
+    if (result == -1) {
+        assert (!"could not make a pipe for standard out");
         return;
     }
 
