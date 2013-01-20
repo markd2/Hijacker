@@ -14,21 +14,26 @@
 
 @property (strong, nonatomic) NSMutableString *contents;
 
-@end
+@end // extension
+
 
 @implementation XXViewController
 
 - (void) viewDidLoad {
     [super viewDidLoad];
+
+    // Add a border around the text view.
     self.loggingView.layer.borderWidth = 1.0f;
     self.loggingView.layer.borderColor = [UIColor blackColor].CGColor;
 
+    // Hijack standard out.
     self.stdoutHijacker = [XXFdHijacker hijackerWithFd: fileno(stdout)];
     setbuf (stdout, NULL);
     self.stdoutHijacker.delegate = self;
     [self.stdoutHijacker startHijacking];
     [self.stdoutHijacker startReplicating];
 
+    // Hijack standard error
     self.stderrHijacker = [XXFdHijacker hijackerWithFd: fileno(stderr)];
     setbuf (stderr, NULL);
     self.stderrHijacker.delegate = self;
@@ -67,15 +72,18 @@
 
 
 - (IBAction) log: (UIButton *) button {
+    // Print out stuff
     NSLog (@"All Kids Love Log!");
     printf ("all kds lv lg!\n");
 } // log
 
 
-- (IBAction) throw: (UIButton *) button {
-    // Wonder if we can have UIApplication print out its exception trace, but not exit?
-    [@[] objectAtIndex: 0];
-} // throw
+- (IBAction) toolkitGripes: (UIButton *) button {
+    // Force the toolkit to gripe.
+    void *ook = malloc (13);
+    free (ook);
+    free (ook);
+} // toolkitGripes
 
 
 - (IBAction) clearTextfield: (UIButton *) button {
