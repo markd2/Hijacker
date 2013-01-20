@@ -59,7 +59,19 @@ enum { kReadSide, kWriteSide };  // The two side to every pipe()
 - (void) stopHijacking {
     if (!self.hijacking) return;
 
-    [self notifyString: @"stopHijacking"];
+    int result;
+
+    result = dup2 (self.oldFileDescriptor, self.fileDescriptor);
+    if (result == -1) {
+        assert (!"could not dup2 back");
+        return;
+    }
+
+    result = close (_pipe[0]);
+    if (result == -1) {
+        assert (!"could not close");
+        return;
+    }
 
     self.hijacking = NO;
 } // stopHijacking
