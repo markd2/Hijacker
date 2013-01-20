@@ -8,6 +8,7 @@
 @interface XXViewController () <XXFdHijackerDelegate>
 
 @property (weak, nonatomic) IBOutlet UITextView *loggingView;
+
 @property (strong, nonatomic) XXFdHijacker *stdoutHijacker;
 @property (strong, nonatomic) XXFdHijacker *stderrHijacker;
 
@@ -25,23 +26,29 @@
     self.stdoutHijacker = [XXFdHijacker hijackerWithFd: fileno(stdout)];
     setbuf (stdout, NULL);
     self.stdoutHijacker.delegate = self;
+    [self.stdoutHijacker startHijacking];
+    [self.stdoutHijacker startReplicating];
 
     self.stderrHijacker = [XXFdHijacker hijackerWithFd: fileno(stderr)];
     setbuf (stderr, NULL);
     self.stderrHijacker.delegate = self;
+    [self.stderrHijacker startHijacking];
+    [self.stderrHijacker startReplicating];
 
     self.contents = [NSMutableString string];
+
+    NSLog (@"All Kids Love Log");
 
 } // viewDidLoad
 
 
 - (IBAction) toggleHijack: (UISwitch *) toggle {
     if (toggle.on) {
-        [self.stdoutHijacker startHijacking];
-        [self.stderrHijacker startHijacking];
+        if (toggle.tag == 0) [self.stdoutHijacker startHijacking];
+        if (toggle.tag == 1) [self.stderrHijacker startHijacking];
     } else {
-        [self.stdoutHijacker stopHijacking];
-        [self.stderrHijacker stopHijacking];
+        if (toggle.tag == 0) [self.stdoutHijacker stopHijacking];
+        if (toggle.tag == 1) [self.stderrHijacker stopHijacking];
     }
 
 } // toggleHijack
@@ -49,19 +56,19 @@
 
 - (IBAction) toggleReplicate: (UISwitch *) toggle {
     if (toggle.on) {
-        [self.stdoutHijacker startReplicating];
-        [self.stderrHijacker startReplicating];
+        if (toggle.tag == 0) [self.stdoutHijacker startReplicating];
+        if (toggle.tag == 1) [self.stderrHijacker startReplicating];
     } else {
-        [self.stdoutHijacker stopReplicating];
-        [self.stderrHijacker stopReplicating];
+        if (toggle.tag == 0) [self.stdoutHijacker stopReplicating];
+        if (toggle.tag == 1) [self.stderrHijacker stopReplicating];
     }
 
 } // toggleReplicate
 
 
 - (IBAction) log: (UIButton *) button {
-    NSLog (@"ALL KIDS LOVE LOG");
-    printf ("hi there kids!\n");
+    NSLog (@"All Kids Love Log!");
+    printf ("all kds lv lg!\n");
 } // log
 
 
@@ -69,6 +76,13 @@
     // Wonder if we can have UIApplication print out its exception trace, but not exit?
     [@[] objectAtIndex: 0];
 } // throw
+
+
+- (IBAction) clearTextfield: (UIButton *) button {
+    self.contents = [NSMutableString string];
+    self.loggingView.text = self.contents;
+    [self scrollToEnd];
+} // clearTextfield
 
 
 - (void) scrollToEnd {
