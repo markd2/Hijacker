@@ -1,29 +1,44 @@
-//
-//  XXViewController.m
-//  Hijacker
-//
-//  Created by Mark Dalrymple on 1/20/13.
-//  Copyright (c) 2013 Big Nerd Ranch. All rights reserved.
-//
-
 #import "XXViewController.h"
 
+#import <QuartzCore/QuartzCore.h>  // For layer styles
+
+
 @interface XXViewController ()
+
+@property (weak, nonatomic) IBOutlet UITextView *loggingView;
 
 @end
 
 @implementation XXViewController
 
-- (void)viewDidLoad
-{
+- (void) viewDidLoad {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
-}
+    self.loggingView.layer.borderWidth = 1.0f;
+    self.loggingView.layer.borderColor = [UIColor blackColor].CGColor;
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
+    NSSetUncaughtExceptionHandler (CatchUncaught);
 
-@end
+} // viewDidLoad
+
+
+- (IBAction) toggleHijack: (UISwitch *) toggle {
+    NSLog (@"HIJACK TOGGLE");
+} // toggleHijack
+
+
+- (IBAction) toggleReplicate: (UISwitch *) toggle {
+    NSLog (@"REPLICATE TOGGLE");
+} // toggleReplicate
+
+
+- (IBAction) log: (UIButton *) button {
+    NSLog (@"ALL KIDS LOVE LOG");
+} // log
+
+
+- (IBAction) throw: (UIButton *) button {
+    // Wonder if we can have UIApplication print out its exception trace, but not exit?
+    [@[] objectAtIndex: 0];
+} // throw
+
+@end // XXViewController
