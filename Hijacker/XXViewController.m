@@ -22,10 +22,12 @@
     self.loggingView.layer.borderWidth = 1.0f;
     self.loggingView.layer.borderColor = [UIColor blackColor].CGColor;
 
-    self.stdoutHijacker = [XXFdHijacker hijackerWithFd: 0];
+    self.stdoutHijacker = [XXFdHijacker hijackerWithFd: fileno(stdout)];
+    setbuf (stdout, NULL);
     self.stdoutHijacker.delegate = self;
 
-    self.stderrHijacker = [XXFdHijacker hijackerWithFd: 1];
+    self.stderrHijacker = [XXFdHijacker hijackerWithFd: fileno(stderr)];
+    setbuf (stderr, NULL);
     self.stderrHijacker.delegate = self;
 
     self.contents = [NSMutableString string];
@@ -59,6 +61,7 @@
 
 - (IBAction) log: (UIButton *) button {
     NSLog (@"ALL KIDS LOVE LOG");
+    printf ("hi there kids!\n");
 } // log
 
 
@@ -79,7 +82,6 @@
     if (hijacker == self.stderrHijacker) [self.contents appendString: @"stderr: "];
 
     [self.contents appendString: text];
-    [self.contents appendString: @"\n"];
     self.loggingView.text = self.contents;
     [self scrollToEnd];
 } // hijacker
