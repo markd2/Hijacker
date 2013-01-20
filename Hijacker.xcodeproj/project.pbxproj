@@ -15,6 +15,7 @@
 		7DC0D78116AC770800129D95 /* XXAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 7DC0D78016AC770800129D95 /* XXAppDelegate.m */; };
 		7DC0D78A16AC770800129D95 /* XXViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7DC0D78916AC770800129D95 /* XXViewController.m */; };
 		7DC0D78D16AC770800129D95 /* XXViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7DC0D78B16AC770800129D95 /* XXViewController.xib */; };
+		7DC0D79D16AC80FF00129D95 /* XXFdHijacker.m in Sources */ = {isa = PBXBuildFile; fileRef = 7DC0D79C16AC80FF00129D95 /* XXFdHijacker.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,8 @@
 		7DC0D78816AC770800129D95 /* XXViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XXViewController.h; sourceTree = "<group>"; };
 		7DC0D78916AC770800129D95 /* XXViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = XXViewController.m; sourceTree = "<group>"; };
 		7DC0D78C16AC770800129D95 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/XXViewController.xib; sourceTree = "<group>"; };
+		7DC0D79B16AC80FF00129D95 /* XXFdHijacker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XXFdHijacker.h; sourceTree = "<group>"; };
+		7DC0D79C16AC80FF00129D95 /* XXFdHijacker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XXFdHijacker.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +80,8 @@
 		7DC0D77616AC770800129D95 /* Hijacker */ = {
 			isa = PBXGroup;
 			children = (
+				7DC0D79B16AC80FF00129D95 /* XXFdHijacker.h */,
+				7DC0D79C16AC80FF00129D95 /* XXFdHijacker.m */,
 				7DC0D77F16AC770800129D95 /* XXAppDelegate.h */,
 				7DC0D78016AC770800129D95 /* XXAppDelegate.m */,
 				7DC0D78816AC770800129D95 /* XXViewController.h */,
@@ -165,6 +170,7 @@
 				7DC0D77D16AC770800129D95 /* main.m in Sources */,
 				7DC0D78116AC770800129D95 /* XXAppDelegate.m in Sources */,
 				7DC0D78A16AC770800129D95 /* XXViewController.m in Sources */,
+				7DC0D79D16AC80FF00129D95 /* XXFdHijacker.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,6 +292,7 @@
 				7DC0D79216AC770800129D95 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
