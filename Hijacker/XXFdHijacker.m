@@ -1,15 +1,17 @@
 #import "XXFdHijacker.h"
 
+// pipe() fills in an array of two file descriptors.  Whats written to the write-side
+// (file descriptor 1) appears on the the read-side (file descriptor 0). 
 enum { kReadSide, kWriteSide };  // The two side to every pipe()
 
 @interface XXFdHijacker () {
-    int _pipe[2];
-    CFSocketRef _socketRef;
+    int _pipe[2];   // populated by pipe()
+    CFRunLoopSourceRef _monitorRunLoopSource;  // Notifies us of activity on the pipe.
 }
-@property (assign, nonatomic) int fileDescriptor;  // turn of read-onlyibility
-@property (assign, nonatomic) int oldFileDescriptor;
+@property (assign, nonatomic) int fileDescriptor;     // The fd we're hijacking
+@property (assign, nonatomic) int oldFileDescriptor;  // The original fd, for unhijacking
 
-@property (assign, nonatomic) BOOL hijacking;
+@property (assign, nonatomic) BOOL hijacking;   // Are we hijacking or replicating?
 @property (assign, nonatomic) BOOL replicating;
 
 @end // extension
@@ -17,6 +19,9 @@ enum { kReadSide, kWriteSide };  // The two side to every pipe()
 
 
 @implementation XXFdHijacker
+
+
+// Convenience method to make a new hijacker with a given file descriptor.
 
 + (id) hijackerWithFd: (int) fileDescriptor {
     XXFdHijacker *hijacker = [[[self class] alloc] init];
@@ -26,50 +31,55 @@ enum { kReadSide, kWriteSide };  // The two side to every pipe()
 } // hijackerWithFd
 
 
+// This is the unixy-core-foundationy dirty work.
 - (void) startHijacking {
     if (self.hijacking) return;
 
+    // Unix API is of the "return bad value, set errno" flavor.
     int result;
 
+    // Make the pipe.  Anchor one end of the pipe where the original fd is.
+    // The other end will go to a runloop source so we can find bytes written to it.
     result = pipe (_pipe);
     if (result == -1) {
         assert (!"could not make a pipe for standard out");
         return;
     }
 
+    // Make a copy of the file descriptor.  The dup2 will close it, but we want it
+    // to stick around for restoration and replication.
     self.oldFileDescriptor = dup (self.fileDescriptor);
-
     if (self.oldFileDescriptor == -1) {
         assert (!"could not dup our fd");
         return;
     }
 
+    // Replace the file descriptor with one part (the writing side) of the pipe.
     result = dup2 (_pipe[kWriteSide], self.fileDescriptor);
     if (result == -1) {
         assert (!"could not dup2 our fd");
         return;
     }
 
+    // Monitor the reading side of the pipe.
     [self startMonitoringFileDescriptor: _pipe[kReadSide]];
 
     self.hijacking = YES;
 } // startHijacking
 
 
+// Undo the damage we did.
+
 - (void) stopHijacking {
     if (!self.hijacking) return;
 
     int result;
 
+    // Replace the file descriptor, which was our pipe, with the original one.
+    // This closes the pipe.
     result = dup2 (self.oldFileDescriptor, self.fileDescriptor);
     if (result == -1) {
         assert (!"could not dup2 back");
-        return;
-    }
-
-    result = close (_pipe[0]);
-    if (result == -1) {
-        assert (!"could not close");
         return;
     }
 
@@ -91,6 +101,7 @@ enum { kReadSide, kWriteSide };  // The two side to every pipe()
 } // stopReplicating
 
 
+// We got some text!  Tell the delegate.
 - (void) notifyString: (NSString *) contents {
     [self.delegate hijacker: self  gotText: contents];
 } // notifyString
@@ -99,6 +110,8 @@ enum { kReadSide, kWriteSide };  // The two side to every pipe()
 // --------------------------------------------------
 // The heavy lifting
 
+
+// Callback function, invoked when new data has been read from our pipe.
 static void ReceiveMessage (CFSocketRef socket, CFSocketCallBackType type,
                             CFDataRef address, const void *cfdata, void *info) {
     NSData *data = (__bridge NSData *) cfdata;
@@ -117,33 +130,44 @@ static void ReceiveMessage (CFSocketRef socket, CFSocketCallBackType type,
 } // ReceiveMessage
 
 
+// Add the file descriptor to the runloop for notification.
 - (void) startMonitoringFileDescriptor: (int) fd {
     CFSocketContext context = { 0, (__bridge void *)(self), NULL, NULL, NULL };
-    _socketRef = CFSocketCreateWithNative (kCFAllocatorDefault,
-                                           fd,
-                                           kCFSocketDataCallBack,
-                                           ReceiveMessage,
-                                           &context);
-    if (_socketRef == NULL) {
+    CFSocketRef socketRef = CFSocketCreateWithNative (kCFAllocatorDefault,
+                                                      fd,
+                                                      kCFSocketDataCallBack,
+                                                      ReceiveMessage,
+                                                      &context);
+    if (socketRef == NULL) {
         NSLog (@"couldn't make cfsocket");
         goto bailout;
     }
     
-    CFRunLoopSourceRef rls = 
-        CFSocketCreateRunLoopSource(kCFAllocatorDefault, _socketRef, 0);
+    _monitorRunLoopSource =
+        CFSocketCreateRunLoopSource(kCFAllocatorDefault, socketRef, 0);
+    CFRelease (socketRef);
 
-    if (rls == NULL) {
+    if (_monitorRunLoopSource == NULL) {
         NSLog (@"couldn't create run loop source");
         goto bailout;
     }
     
-    CFRunLoopAddSource (CFRunLoopGetCurrent(), rls, kCFRunLoopDefaultMode);
-    CFRelease (rls);
+    CFRunLoopAddSource (CFRunLoopGetCurrent(), _monitorRunLoopSource,
+                        kCFRunLoopDefaultMode);
 
 bailout: 
     return;
 
 } // startMonitoringFileDescriptor
 
+
+// Remove the file descriptor from monitoring.
+- (void) stopMonitoring {
+    CFRunLoopRemoveSource (CFRunLoopGetCurrent(), _monitorRunLoopSource,
+                           kCFRunLoopDefaultMode);
+    CFRelease (_monitorRunLoopSource);
+    _monitorRunLoopSource = NULL;
+
+} // stopMonitoring
 
 @end // XXFdHijacker
