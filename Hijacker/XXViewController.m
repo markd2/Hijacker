@@ -72,17 +72,17 @@
 
 
 - (IBAction) log: (UIButton *) button {
-    // Print out stuff
     NSLog (@"All Kids Love Log!");
     printf ("all kds lv lg!\n");
 } // log
 
 
 - (IBAction) toolkitGripes: (UIButton *) button {
-    // Force the toolkit to gripe.
-    void *ook = malloc (13);
-    free (ook);
-    free (ook);
+
+    // This will cause CoocaTouch to complain to standard error.
+    UISegmentedControl *griper = [[UISegmentedControl alloc] init];
+    griper.segmentedControlStyle = UISegmentedControlStyleBezeled;
+
 } // toolkitGripes
 
 
